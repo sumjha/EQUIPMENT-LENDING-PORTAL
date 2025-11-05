@@ -8,29 +8,17 @@ import com.school.equipmentlending.exception.BadRequestException;
 import com.school.equipmentlending.model.User;
 import com.school.equipmentlending.repository.UserRepository;
 import com.school.equipmentlending.security.JwtTokenProvider;
-import com.school.equipmentlending.security.UserDetailsImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
+import org.mindrot.jbcrypt.BCrypt;
 
-@Service
+/**
+ * Service for Authentication operations
+ */
+@Slf4j
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository = new UserRepository();
+    private final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider();
 
     public MessageResponse registerUser(RegisterRequest registerRequest) {
         // Check if username already exists
@@ -46,38 +34,39 @@ public class AuthService {
         // Create new user
         User user = new User();
         user.setUsername(registerRequest.getUsername());
-        user.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setPasswordHash(BCrypt.hashpw(registerRequest.getPassword(), BCrypt.gensalt()));
         user.setEmail(registerRequest.getEmail());
         user.setFullName(registerRequest.getFullName());
         user.setRole(registerRequest.getRole());
 
         userRepository.save(user);
+        log.info("User registered successfully: {}", user.getUsername());
 
         return new MessageResponse("User registered successfully");
     }
 
     public JwtResponse loginUser(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+        // Find user by username
+        User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new BadRequestException("Invalid username or password"));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtTokenProvider.generateToken(authentication);
+        // Verify password
+        if (!BCrypt.checkpw(loginRequest.getPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("Invalid username or password");
+        }
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String role = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        // Generate JWT token
+        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getRole().name());
+        
+        log.info("User logged in successfully: {}", user.getUsername());
 
         return new JwtResponse(
-                jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                userDetails.getFullName(),
-                role
+                token,
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getRole().name()
         );
     }
 }
-

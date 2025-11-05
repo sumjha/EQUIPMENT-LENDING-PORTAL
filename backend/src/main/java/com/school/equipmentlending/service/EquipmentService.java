@@ -5,17 +5,17 @@ import com.school.equipmentlending.dto.MessageResponse;
 import com.school.equipmentlending.exception.ResourceNotFoundException;
 import com.school.equipmentlending.model.Equipment;
 import com.school.equipmentlending.repository.EquipmentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@Service
+/**
+ * Service for Equipment operations
+ */
+@Slf4j
 public class EquipmentService {
 
-    @Autowired
-    private EquipmentRepository equipmentRepository;
+    private final EquipmentRepository equipmentRepository = new EquipmentRepository();
 
     public List<Equipment> getAllEquipment() {
         return equipmentRepository.findAll();
@@ -37,7 +37,6 @@ public class EquipmentService {
         return equipmentRepository.findByFilters(category, available);
     }
 
-    @Transactional
     public Equipment createEquipment(EquipmentRequest request) {
         Equipment equipment = new Equipment();
         equipment.setName(request.getName());
@@ -48,10 +47,10 @@ public class EquipmentService {
         equipment.setCondition(request.getCondition());
         equipment.setImageUrl(request.getImageUrl());
 
+        log.info("Creating equipment: {}", equipment.getName());
         return equipmentRepository.save(equipment);
     }
 
-    @Transactional
     public Equipment updateEquipment(Long id, EquipmentRequest request) {
         Equipment equipment = getEquipmentById(id);
 
@@ -68,14 +67,14 @@ public class EquipmentService {
             equipment.setAvailableQty(Math.max(0, request.getQuantity() - borrowed));
         }
 
+        log.info("Updating equipment: {}", equipment.getName());
         return equipmentRepository.save(equipment);
     }
 
-    @Transactional
     public MessageResponse deleteEquipment(Long id) {
         Equipment equipment = getEquipmentById(id);
         equipmentRepository.delete(equipment);
+        log.info("Deleted equipment: {}", equipment.getName());
         return new MessageResponse("Equipment deleted successfully");
     }
 }
-
