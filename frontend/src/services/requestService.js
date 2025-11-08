@@ -29,6 +29,11 @@ const requestService = {
   async returnRequest(id) {
     const response = await api.put(`/requests/${id}/return`);
     return response.data;
+  },
+
+  async getOverdueRequests() {
+    const response = await api.get('/requests/overdue');
+    return response.data;
   }
 };
 

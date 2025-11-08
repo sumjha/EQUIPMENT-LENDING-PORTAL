@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -151,6 +152,22 @@ public class BorrowRequestService {
         request.setReturnedDate(LocalDateTime.now());
 
         return borrowRequestRepository.save(request);
+    }
+
+    public List<BorrowRequest> getOverdueRequests() {
+        UserDetailsImpl userDetails = getCurrentUser();
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        LocalDate currentDate = LocalDate.now();
+        
+        // Admin and Staff can see all overdue requests
+        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.STAFF) {
+            return borrowRequestRepository.findOverdueRequests(currentDate);
+        }
+        
+        // Students can only see their own overdue requests
+        return borrowRequestRepository.findOverdueRequestsByUserId(user.getId(), currentDate);
     }
 
     private UserDetailsImpl getCurrentUser() {

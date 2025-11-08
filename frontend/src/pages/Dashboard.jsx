@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationBanner from '../components/notifications/NotificationBanner';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -10,6 +11,8 @@ const Dashboard = () => {
       <p style={{ color: '#666', marginBottom: '2rem' }}>
         Role: {user.role}
       </p>
+
+      <NotificationBanner />
 
       <div className="grid grid-3">
         <div className="card">

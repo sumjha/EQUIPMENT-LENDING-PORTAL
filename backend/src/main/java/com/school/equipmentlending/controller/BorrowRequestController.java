@@ -23,6 +23,11 @@ public class BorrowRequestController {
         return ResponseEntity.ok(borrowRequestService.getAllRequests());
     }
 
+    @GetMapping("/overdue")
+    public ResponseEntity<List<BorrowRequest>> getOverdueRequests() {
+        return ResponseEntity.ok(borrowRequestService.getOverdueRequests());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<BorrowRequest> getRequestById(@PathVariable Long id) {
         return ResponseEntity.ok(borrowRequestService.getRequestById(id));
