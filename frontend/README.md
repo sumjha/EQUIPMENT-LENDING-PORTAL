@@ -1,5 +1,15 @@
 # Equipment Lending Portal - Frontend
 
+## Screenshots
+
+<p align="center">
+  <img src="public/screenshots/screenshot1.jpeg" alt="Screenshot 1" width="600" />
+  <img src="public/screenshots/screenshot2.jpeg" alt="Screenshot 2" width="600" />
+  <img src="public/screenshots/screenshot3.jpeg" alt="Screenshot 3" width="600" />
+  <img src="public/screenshots/screenshot4.jpeg" alt="Screenshot 4" width="600" />
+  <img src="public/screenshots/screenshot5.jpeg" alt="Screenshot 5" width="600" />
+</p>
+
 React frontend application for the Equipment Lending Portal.
 
 ## Technology Stack
